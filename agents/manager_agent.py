@@ -1,5 +1,6 @@
 from agents.note_taking_agent import NoteTakingAgent
 from agents.review_agent import ReviewAgent
+from agents.translation_agent import TranslationAgent
 from storage.storage import VersionedNotesStorage
 
 class ManagerAgent:
@@ -13,6 +14,7 @@ class ManagerAgent:
     def __init__(self, model_name="gpt-4o"):
         self.note_taking_agent = NoteTakingAgent(model_name)
         self.review_agent = ReviewAgent(model_name)
+        self.translation_agent = TranslationAgent()
         self.storage = VersionedNotesStorage()
         self.transcript = None
         self.has_transcript = False  # Nowy flag do śledzenia stanu transkrypcji
@@ -27,17 +29,28 @@ class ManagerAgent:
         """Sprawdza czy jest dostępna transkrypcja."""
         return self.has_transcript
 
-    def generate_notes(self, note_type: str, additional_instructions: str = "") -> str:
+    def generate_notes(self, note_type: str, target_lang: str, additional_instructions: str = "") -> str:
         if not self.transcript:
             raise ValueError("Brak transkrypcji. Najpierw ustaw transkrypcję (set_transcript).")
         
         print(f"\n[ManagerAgent] Rozpoczynam proces generowania notatek typu: {note_type}")
-        # Generuje notatki
+        # Generuje notatki (polski)
         notes = self.note_taking_agent.run(
             transcript=self.transcript,
             note_type=note_type,
             additional_instructions=additional_instructions
         )
+        if target_lang != "polski":
+            lang_code = {
+                "english": "en",
+                "español": "es"
+            }.get(target_lang)
+
+            if lang_code:
+                print(f"[ManagerAgent] Rozpoczynam tłumaczenie na język: {target_lang}")
+                notes = self.translation_agent.translate(notes, lang_code)
+                print("[ManagerAgent] Zakończono tłumaczenie")
+
         # Zapisuje jako wersja 1 (lub kolejna)
         self.storage.add_version(notes)
         print("[ManagerAgent] Zapisano nową wersję notatek")

@@ -37,9 +37,9 @@ def build_interface():
             gr.update(interactive=True, label="2. Generowanie notatek")
         ]
 
-    def on_generate_notes(note_type, additional_instructions):
+    def on_generate_notes(note_type, target_language, additional_instructions):
         """Generuje notatki i pokazuje elementy do poprawiania"""
-        notes = manager.generate_notes(note_type, additional_instructions)
+        notes = manager.generate_notes(note_type, target_language, additional_instructions)
         return [
             notes,
             gr.update(visible=True),  # feedback_input
@@ -92,6 +92,11 @@ def build_interface():
                         value="summary",
                         label="Wybierz styl notatek"
                     )
+                    target_language = gr.Dropdown(
+                        choices=["polski", "english", "español"],
+                        value="polski",
+                        label="Język notatek"
+                    )
                     additional_instructions = gr.Textbox(
                         label="Dodatkowe instrukcje",
                         placeholder="Np. 'Zwróć uwagę na...'",
@@ -109,18 +114,16 @@ def build_interface():
                         visible=False
                     )
                     refine_button = gr.Button("Popraw notatki", visible=False)
-                    changes_output = gr.Textbox(
+                    changes_output = gr.Markdown(
                         label="Wprowadzone zmiany",
-                        lines=2,
-                        interactive=False,
+                        value="",
                         visible=False
                     )
 
                 with gr.Column(scale=2):
-                    notes_output = gr.Textbox(
+                    notes_output = gr.Markdown(
                         label="Wygenerowane notatki",
-                        lines=25,
-                        show_label=False
+                        value="*Tu pojawią się wygenerowane notatki...*",
                     )
 
         with gr.Tab("3. Historia"):
@@ -142,7 +145,7 @@ def build_interface():
 
         generate_notes_btn.click(
             fn=on_generate_notes,
-            inputs=[note_type, additional_instructions],
+            inputs=[note_type, target_language, additional_instructions],
             outputs=[
                 notes_output,
                 feedback_input,
