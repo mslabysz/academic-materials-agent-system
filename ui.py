@@ -75,7 +75,7 @@ def build_interface():
             with gr.Row():
                 with gr.Column(scale=1):
                     note_type = gr.Radio(
-                        choices=["summary", "academic", "outline", "mindmap", "q_and_a"],
+                        choices=["summary", "academic", "outline", "mindmap", "q_and_a", "flashcards"],
                         value="summary",
                         label="Wybierz styl notatek"
                     )

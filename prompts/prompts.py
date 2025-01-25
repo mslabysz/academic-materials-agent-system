@@ -67,6 +67,30 @@ Użyj formatowania Markdown:
 Transkrypcja:
 {transcript}
 """,
+
+    "flashcards": """Stwórz zestaw fiszek edukacyjnych na podstawie poniższej transkrypcji.
+Format każdej fiszki MUSI być dokładnie taki (z podwójnymi enterami):
+
+**Przód:** Co to jest przykład?
+
+**Tył:** To jest przykładowa odpowiedź.
+
+**Przód:** Kolejne pytanie?
+
+**Tył:** Kolejna odpowiedź.
+
+BARDZO WAŻNE:
+- Każda fiszka musi zaczynać się od "**Przód:**"
+- Po pytaniu MUSZĄ być dwie puste linie
+- Odpowiedź musi zaczynać się od "**Tył:**"
+- Po odpowiedzi MUSZĄ być dwie puste linie
+- Używaj pogrubienia dla "Przód:" i "Tył:"
+- Możesz używać *kursywy* dla ważnych terminów
+- Możesz używać > dla cytatów lub przykładów
+
+Transkrypcja:
+{transcript}
+""",
 }
 
 REVIEW_PROMPT = """Oto aktualne notatki, wraz z oryginalną transkrypcją i feedbackiem użytkownika.
