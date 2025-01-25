@@ -35,7 +35,7 @@ class ReviewAgent:
         print("[ReviewAgent] Otrzymano odpowiedź od modelu")
         full_response = response.choices[0].message.content.strip()
         
-        # Rozdzielamy odpowiedź na notatki i opis zmian
+        # podzial na notatki i opis zmian
         try:
             notes_part = full_response.split("[NOTES]")[1].split("[CHANGES]")[0].strip()
             changes_description = full_response.split("[CHANGES]")[1].strip()

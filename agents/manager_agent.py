@@ -5,7 +5,7 @@ from storage.storage import VersionedNotesStorage
 
 class ManagerAgent:
     """
-    Główny 'prezes'. Odpowiada za:
+    Główny 'zarządca'. Odpowiada za:
     - przechowywanie transkrypcji,
     - wywoływanie NoteTaking i Review,
     - przechowywanie historii notatek (VersionedNotesStorage),
@@ -17,12 +17,12 @@ class ManagerAgent:
         self.translation_agent = TranslationAgent()
         self.storage = VersionedNotesStorage()
         self.transcript = None
-        self.has_transcript = False  # Nowy flag do śledzenia stanu transkrypcji
+        self.has_transcript = False
 
     def set_transcript(self, transcript: str):
-        """Ustawia transkrypcję i aktualizuje flag."""
+        """Ustawia transkrypcję i aktualizuje flage."""
         self.transcript = transcript
-        self.has_transcript = True  # Ustawiamy flag na True po pobraniu transkrypcji
+        self.has_transcript = True
         print("[ManagerAgent] Zapisano nową transkrypcję")
 
     def has_valid_transcript(self) -> bool:
@@ -34,7 +34,6 @@ class ManagerAgent:
             raise ValueError("Brak transkrypcji. Najpierw ustaw transkrypcję (set_transcript).")
         
         print(f"\n[ManagerAgent] Rozpoczynam proces generowania notatek typu: {note_type}")
-        # Generuje notatki (polski)
         notes = self.note_taking_agent.run(
             transcript=self.transcript,
             note_type=note_type,
@@ -51,7 +50,6 @@ class ManagerAgent:
                 notes = self.translation_agent.translate(notes, lang_code)
                 print("[ManagerAgent] Zakończono tłumaczenie")
 
-        # Zapisuje jako wersja 1 (lub kolejna)
         self.storage.add_version(notes)
         print("[ManagerAgent] Zapisano nową wersję notatek")
         return notes
@@ -71,7 +69,6 @@ class ManagerAgent:
             current_notes=current_notes,
             feedback=feedback
         )
-        # Zapis nowej wersji
         self.storage.add_version(refined_notes, feedback_applied=feedback)
         print("[ManagerAgent] Zapisano nową wersję poprawionych notatek")
         return refined_notes, changes_description

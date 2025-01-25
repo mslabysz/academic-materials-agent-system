@@ -1,9 +1,5 @@
 from youtube_transcript_api import YouTubeTranscriptApi
-import openai
-from datetime import datetime
-import os
 from openai import OpenAI
-
 from utils import get_file_paths
 
 def get_youtube_transcript(url: str) -> tuple[str, str]:
@@ -12,7 +8,6 @@ def get_youtube_transcript(url: str) -> tuple[str, str]:
     """
     print(f"\n[YouTube Transcription] Rozpoczynam pobieranie transkrypcji z URL: {url}")
     try:
-        # Wydobywamy ID wideo
         video_id = None
         if "youtu.be" in url:
             video_id = url.split("/")[-1].split("?")[0]
@@ -27,7 +22,6 @@ def get_youtube_transcript(url: str) -> tuple[str, str]:
         
         print(f"[YouTube Transcription] Znaleziono ID wideo: {video_id}")
 
-        # Pobieramy transkrypcję
         try:
             print("[YouTube Transcription] Próba bezpośredniego pobrania transkrypcji...")
             transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
@@ -58,8 +52,7 @@ def get_youtube_transcript(url: str) -> tuple[str, str]:
         
         print("[YouTube Transcription] Pomyślnie pobrano transkrypcję")
         print(f"[YouTube Transcription] Długość transkrypcji: {len(full_text)} znaków")
-        
-        # Zapis transkrypcji do pliku
+
         full_path, filename = get_file_paths(full_text, f"transcript_yt_{video_id}", ".txt")
         with open(full_path, "w", encoding="utf-8") as f:
             f.write(full_text)
@@ -92,7 +85,6 @@ def get_audio_transcript(file_path: str) -> tuple[str, str]:
         print("[Audio Transcription] Pomyślnie otrzymano transkrypcję")
         print(f"[Audio Transcription] Długość transkrypcji: {len(full_text)} znaków")
 
-        # Zapis transkrypcji do pliku
         full_path, filename = get_file_paths(full_text, "transcript_audio", ".txt")
         with open(full_path, "w", encoding="utf-8") as f:
             f.write(full_text)

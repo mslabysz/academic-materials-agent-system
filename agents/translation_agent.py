@@ -1,6 +1,4 @@
 from transformers import pipeline
-import time
-
 
 class TranslationAgent:
     def __init__(self):

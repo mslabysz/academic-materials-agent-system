@@ -1,9 +1,7 @@
 import gradio as gr
-import os
 from agents.manager_agent import ManagerAgent
 from transcribe import get_youtube_transcript, get_audio_transcript
 from utils import get_file_paths
-
 
 def build_interface():
     manager = ManagerAgent()
@@ -47,7 +45,6 @@ def build_interface():
             gr.update(visible=True),  # changes_output
         ]
 
-    # Funkcja do refinacji/poprawek
     def refine_notes(feedback):
         """
         Funkcja do poprawiania notatek na podstawie feedbacku.
@@ -58,17 +55,7 @@ def build_interface():
         except Exception as e:
             return f"Wystąpił błąd: {str(e)}", "Nie udało się wygenerować opisu zmian."
 
-    def update_tab_state(interactive):
-        """Aktualizuje stan drugiego taba"""
-        label = "2. Generowanie notatek" if interactive else "2. Generowanie notatek (najpierw pobierz transkrypcję)"
-        return gr.Tab.update(interactive=interactive, label=label)
-
-    def on_transcript_received():
-        """Callback wywoływany po pomyślnym pobraniu transkrypcji"""
-        update_tab_state(True)
-
-    # Interfejs
-
+    # Interfejs Gradio
     with gr.Blocks() as demo:
         gr.Markdown("## Aplikacja do notatek z nagrań audio/YouTube")
 
