@@ -79,3 +79,7 @@ class ManagerAgent:
 
     def get_notes_history(self) -> list:
         return self.storage.get_all_versions()
+
+    def get_translation_metrics(self, target_lang: str) -> dict:
+        """Returns translation model metrics for specified language"""
+        return self.translation_agent.evaluate_model(target_lang)
