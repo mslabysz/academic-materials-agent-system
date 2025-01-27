@@ -80,7 +80,7 @@ def get_audio_transcript(file_path: str) -> tuple[str, str]:
                 model="whisper-1",
                 file=af
             )
-
+            print("[Audio Transcription] Otrzymano odpowiedź od API Whisper")
         full_text = transcript.text
         print("[Audio Transcription] Pomyślnie otrzymano transkrypcję")
         print(f"[Audio Transcription] Długość transkrypcji: {len(full_text)} znaków")

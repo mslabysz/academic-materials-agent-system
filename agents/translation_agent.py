@@ -75,14 +75,13 @@ class TranslationAgent:
         print("\n[TranslationAgent] Obliczam metryki...")
         all_metrics = self.metrics_calculator.calculate_metrics(predictions, references)
         
-        # Store only the normalized metrics (excluding BLEU)
+        # tylko znormalizowane metryki
         self.latest_metrics = {
             'precision': all_metrics['precision'],
             'recall': all_metrics['recall'],
             'f1_score': all_metrics['f1_score']
         }
         
-        # Szczegółowe podsumowanie wyników
         print("\n[TranslationAgent] Podsumowanie ewaluacji:")
         print(f"- Precision: {self.latest_metrics['precision']:.2f}")
         print(f"- Recall: {self.latest_metrics['recall']:.2f}")

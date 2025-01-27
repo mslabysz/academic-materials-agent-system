@@ -225,18 +225,17 @@ def build_interface():
             outputs=[]
         )
 
-        # Update metrics evaluation function
         def update_metrics(lang):
             metrics = manager.get_translation_metrics(lang)
             
-            # Update dataframe values
+            # Update wartosci w DataFrame
             df_values = [
                 ["Precision", metrics['precision']],
                 ["Recall", metrics['recall']],
                 ["F1 Score", metrics['f1_score']]
             ]
             
-            # Create matplotlib figure
+            # stworzenie wykresu
             fig, ax = plt.subplots(figsize=(8, 5))
             metrics_names = ["Precision", "Recall", "F1 Score"]
             metrics_values = [metrics['precision'], metrics['recall'], metrics['f1_score']]
@@ -245,7 +244,7 @@ def build_interface():
             ax.set_title('Translation Model Metrics')
             ax.set_ylim(0, 1)
             
-            # Add value labels on top of each bar
+            # Dodanie wartości na słupkach
             for bar in bars:
                 height = bar.get_height()
                 ax.text(bar.get_x() + bar.get_width()/2., height,
