@@ -5,7 +5,7 @@ from storage.storage import VersionedNotesStorage
 
 class ManagerAgent:
     """
-    Główny 'zarządca'. Odpowiada za:
+    Główny 'SUPERVISOR'. Odpowiada za:
     - przechowywanie transkrypcji,
     - wywoływanie NoteTaking i Review,
     - przechowywanie historii notatek (VersionedNotesStorage),
