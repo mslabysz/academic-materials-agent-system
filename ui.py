@@ -4,6 +4,7 @@ from agents.manager_agent import ManagerAgent
 from metrics.aspect_metrics import NoteAspectEvaluator
 from transcribe import get_youtube_transcript, get_audio_transcript
 from utils import get_file_paths
+import numpy as np
 
 def build_interface():
     manager = ManagerAgent()
