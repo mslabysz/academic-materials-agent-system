@@ -1,11 +1,9 @@
-from openai import OpenAI
+from langgraph.graph import StateGraph
+from agents.base_agent import BaseAgent
 from agents.note_taking_agent import NoteTakingAgent
 from agents.review_agent import ReviewAgent
 from agents.translation_agent import TranslationAgent
 from storage.storage import VersionedNotesStorage
-from agents.state import AgentState
-from agents.base_agent import BaseAgent
-from langgraph.graph import StateGraph
 
 class ManagerAgent(BaseAgent):
     """

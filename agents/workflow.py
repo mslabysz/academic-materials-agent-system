@@ -1,7 +1,7 @@
 from langgraph.graph import StateGraph
-from agents.state import AgentState
 from agents.note_taking_agent import NoteTakingAgent
 from agents.review_agent import ReviewAgent
+from agents.state import AgentState
 from agents.translation_agent import TranslationAgent
 
 def create_notes_workflow(model_name="gpt-4o"):
