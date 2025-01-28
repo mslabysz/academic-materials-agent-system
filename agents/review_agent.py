@@ -5,7 +5,7 @@ class ReviewAgent(BaseAgent):
     """
     Agent do poprawek i rozbudowy notatek na podstawie feedbacku użytkownika.
     """
-    def __init__(self, model_name="gpt-4"):
+    def __init__(self, model_name="gpt-4o"):
         super().__init__("ReviewAgent", model_name)
 
     def __call__(self, state: dict) -> dict:

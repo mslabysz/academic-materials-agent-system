@@ -2,7 +2,7 @@ from agents.base_agent import BaseAgent
 from prompts.prompts import NOTE_TAKING_PROMPTS
 
 class NoteTakingAgent(BaseAgent):
-    def __init__(self, model_name="gpt-4"):
+    def __init__(self, model_name="gpt-4o"):
         super().__init__("NoteTakingAgent", model_name)
 
     def __call__(self, state: dict) -> dict:
