@@ -1,7 +1,7 @@
 from openai import OpenAI
 
 class BaseAgent:
-    def __init__(self, name: str, model_name: str = "gpt-4"):
+    def __init__(self, name: str, model_name: str = "gpt-4o"):
         self.name = name
         self.model_name = model_name
         self.client = OpenAI() if model_name else None

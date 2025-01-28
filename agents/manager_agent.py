@@ -211,3 +211,8 @@ Wybierz JEDNO działanie (odpowiedz TYLKO jednym słowem):
         
         latest = self.storage.get_latest_version()
         return latest.get("notes_content", "")
+    def has_valid_transcript(self) -> bool:
+        """
+        Sprawdza czy jest dostępna prawidłowa transkrypcja.
+        """
+        return bool(self.transcript and isinstance(self.transcript, str) and len(self.transcript.strip()) > 0)
