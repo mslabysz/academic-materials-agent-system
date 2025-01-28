@@ -47,15 +47,17 @@ def build_interface():
             gr.update(visible=True),  # changes_output
         ]
 
-    def refine_notes(feedback):
-        """
-        Funkcja do poprawiania notatek na podstawie feedbacku.
-        """
+    def on_refine_notes(feedback):
+        """Poprawia notatki na podstawie feedbacku"""
         try:
             notes, changes = manager.refine_notes(feedback)
-            return notes, changes
+            return [
+                notes,  # Notatki do wyświetlenia
+                gr.update(value=""),  # Czyścimy pole feedback
+                gr.update(value=changes, visible=True),  # Pokazujemy opis zmian
+            ]
         except Exception as e:
-            return f"Wystąpił błąd: {str(e)}", "Nie udało się wygenerować opisu zmian."
+            raise gr.Error(f"Wystąpił błąd: {str(e)}")
 
     # Interfejs Gradio
     with gr.Blocks() as demo:
@@ -202,9 +204,9 @@ def build_interface():
         )
 
         refine_button.click(
-            fn=refine_notes,
+            fn=on_refine_notes,
             inputs=[feedback_input],
-            outputs=[notes_output, changes_output]
+            outputs=[notes_output, feedback_input, changes_output]
         )
 
         def get_history():

@@ -6,17 +6,17 @@ from agents.translation_agent import TranslationAgent
 
 def create_notes_workflow(model_name="gpt-4o"):
     # Tworzymy instancje agentów
-    note_taking_agent = NoteTakingAgent(model_name)
-    review_agent = ReviewAgent(model_name)
-    translation_agent = TranslationAgent()
+    note_taking = NoteTakingAgent(model_name)
+    review = ReviewAgent(model_name)
+    translation = TranslationAgent()
     
     # Tworzymy graf przepływu pracy
     workflow = StateGraph(AgentState)
     
     # Definiujemy węzły (agentów)
-    workflow.add_node("note_taking", note_taking_agent)
-    workflow.add_node("review", review_agent)
-    workflow.add_node("translation", translation_agent)
+    workflow.add_node("note_taking", note_taking)
+    workflow.add_node("review", review)
+    workflow.add_node("translation", translation)
     workflow.add_node("end", lambda x: x)
     
     # Definiujemy przepływ

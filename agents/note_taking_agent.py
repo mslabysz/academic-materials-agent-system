@@ -1,6 +1,7 @@
 from openai import OpenAI
 from prompts.prompts import NOTE_TAKING_PROMPTS
 from agents.state import AgentState  # W każdym pliku agenta
+
 class NoteTakingAgent:
     """
     Agent do generowania notatek na podstawie transkrypcji.

@@ -1,6 +1,7 @@
 from openai import OpenAI
 from prompts.prompts import REVIEW_PROMPT
-from agents.state import AgentState  # W każdym pliku agenta
+from agents.state import AgentState
+
 class ReviewAgent:
     """
     Agent do poprawek i rozbudowy notatek na podstawie feedbacku użytkownika.
@@ -14,7 +15,6 @@ class ReviewAgent:
         Metoda wywoływana przez LangGraph do przetworzenia stanu.
         """
         if not state["feedback"]:
-            # Jeśli nie ma feedbacku, przechodzimy dalej
             return state
 
         print(f"\n[ReviewAgent] Rozpoczynam poprawianie notatek")
@@ -28,7 +28,7 @@ class ReviewAgent:
 
         print("[ReviewAgent] Wysyłam zapytanie do modelu...")
         response = self.client.chat.completions.create(
-            model=self.model_name,
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": final_prompt}
