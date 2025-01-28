@@ -1,6 +1,6 @@
-from typing import List, Dict, Any
 from dataclasses import dataclass, field
 from time import time
+from typing import List, Dict, Any
 
 @dataclass
 class Message:

@@ -1,7 +1,5 @@
-from sklearn.metrics import precision_score, recall_score, f1_score
 from sacrebleu.metrics import BLEU
-from datasets import load_dataset
-import numpy as np
+from sklearn.metrics import precision_score, recall_score, f1_score
 
 class TranslationMetrics:
     def __init__(self):

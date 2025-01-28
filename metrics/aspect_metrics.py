@@ -1,8 +1,7 @@
-from ragas.metrics import AspectCritic
+from langchain_openai import ChatOpenAI
 from ragas.dataset_schema import SingleTurnSample
 from ragas.llms import LangchainLLMWrapper
-from langchain_openai import ChatOpenAI
-import asyncio
+from ragas.metrics import AspectCritic
 
 class NoteAspectEvaluator:
     def __init__(self):

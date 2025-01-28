@@ -1,9 +1,7 @@
 from transformers import pipeline
-from metrics.metrics import TranslationMetrics
-from datasets import load_dataset
-from data.translation_test_data import TEST_DATA
-from agents.state import AgentState  # W każdym pliku agenta
 from agents.base_agent import BaseAgent
+from data.translation_test_data import TEST_DATA
+from metrics.metrics import TranslationMetrics
 
 class TranslationAgent(BaseAgent):
     def __init__(self):
