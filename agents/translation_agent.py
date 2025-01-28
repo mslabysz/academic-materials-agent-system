@@ -97,16 +97,10 @@ class TranslationAgent(BaseAgent):
         print("[TranslationAgent] Zakończono tłumaczenie")
         return '\n'.join(translated_lines)
 
-    def evaluate_translations(self):
+    def evaluate_model(self, target_lang: str):
         """
-        Ewaluacja jakości tłumaczeń na podstawie danych testowych.
+        Evaluate model performance using test dataset
         """
-<<<<<<< HEAD
-        results = {}
-        for lang_code, translator in self.translators.items():
-            print(f"\nEwaluacja tłumaczenia dla języka: {lang_code}")
-            test_cases = self.test_data.get(lang_code, [])
-=======
         lang_code = {
             "english": "en",
             "español": "es",
@@ -126,32 +120,32 @@ class TranslationAgent(BaseAgent):
             prediction = self.translators[lang_code](source)[0]['translation_text']
             predictions.append(prediction)
             references.append(reference)
->>>>>>> f084a25 (metrics)
             
-            if not test_cases:
-                print(f"Brak danych testowych dla języka {lang_code}")
-                continue
-
-            translations = []
-            references = []
-
-            for test_case in test_cases:
-                source = test_case['source']
-                reference = test_case['target']
-                
-                translation = translator(source)[0]['translation_text']
-                translations.append(translation)
-                references.append(reference)
-
-            metrics = self.metrics_calculator.calculate_metrics(translations, references)
-            results[lang_code] = metrics
-            print(f"Metryki dla {lang_code}: {metrics}")
-
-        self.latest_metrics = results
-        return results
+            # Wyświetl każde tłumaczenie
+            print(f"[TranslationAgent] Test {i}/{len(self.test_data[lang_code])}: '{source}' -> '{prediction}' (expected: '{reference}')")
+            
+            # Co 10 testów pokaż podsumowanie postępu
+            if i % 10 == 0:
+                print(f"\n[TranslationAgent] Postęp: {i}/{len(self.test_data[lang_code])} ({(i/len(self.test_data[lang_code])*100):.1f}%)")
+                print("=" * 80 + "\n")
+        
+        print("\n[TranslationAgent] Obliczam metryki...")
+        all_metrics = self.metrics_calculator.calculate_metrics(predictions, references)
+        
+        # tylko znormalizowane metryki
+        self.latest_metrics = {
+            'precision': all_metrics['precision'],
+            'recall': all_metrics['recall'],
+            'f1_score': all_metrics['f1_score']
+        }
+        
+        print("\n[TranslationAgent] Podsumowanie ewaluacji:")
+        print(f"- Precision: {self.latest_metrics['precision']:.2f}")
+        print(f"- Recall: {self.latest_metrics['recall']:.2f}")
+        print(f"- F1 Score: {self.latest_metrics['f1_score']:.2f}")
+        print("\n[TranslationAgent] Zakończono ewaluację")
+        
+        return self.latest_metrics
 
     def get_latest_metrics(self):
-        """
-        Zwraca ostatnie obliczone metryki.
-        """
         return self.latest_metrics
