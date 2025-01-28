@@ -3,28 +3,30 @@ from metrics.metrics import TranslationMetrics
 from datasets import load_dataset
 from data.translation_test_data import TEST_DATA
 from agents.state import AgentState  # W każdym pliku agenta
+from agents.base_agent import BaseAgent
 
-class TranslationAgent:
+class TranslationAgent(BaseAgent):
     def __init__(self):
+        super().__init__("TranslationAgent", "")  # Nie używamy OpenAI
         self.translators = {
             "en": pipeline("translation", model="Helsinki-NLP/opus-mt-pl-en"),
-            "es": pipeline("translation", model="Helsinki-NLP/opus-mt-pl-es")
+            "es": pipeline("translation", model="Helsinki-NLP/opus-mt-pl-es"),
+            "fr": pipeline("translation", model="Helsinki-NLP/opus-mt-pl-fr")
         }
         self.metrics_calculator = TranslationMetrics()
         self.latest_metrics = {}
         self.test_data = TEST_DATA
 
-    def __call__(self, state: AgentState) -> AgentState:
-        """
-        Metoda wywoływana przez LangGraph do przetworzenia stanu.
-        """
+    def __call__(self, state: dict) -> dict:
+        """Główna logika tłumaczenia"""
         if state["target_language"] == "polski":
             return state
 
         lang_code = {
             "english": "en",
-            "español": "es"
-        }.get(state["target_language"])
+            "español": "es",
+            "francais": "fr"
+        }.get(state["target_language"].lower())
 
         if not lang_code or lang_code not in self.translators:
             raise ValueError(f"Unsupported language: {state['target_language']}")
@@ -52,6 +54,18 @@ class TranslationAgent:
         # Aktualizacja stanu
         state["notes"] = '\n'.join(translated_lines)
         state["status"] = "notes_translated"
+        
+        # Informuj managera o zakończeniu
+        if "messages" not in state:
+            state["messages"] = []
+        state["messages"].append({
+            "from_agent": self.name,
+            "to_agent": "ManagerAgent",
+            "content": {
+                "status": "completed",
+                "target_language": state["target_language"]
+            }
+        })
         
         return state
 
@@ -87,10 +101,32 @@ class TranslationAgent:
         """
         Ewaluacja jakości tłumaczeń na podstawie danych testowych.
         """
+<<<<<<< HEAD
         results = {}
         for lang_code, translator in self.translators.items():
             print(f"\nEwaluacja tłumaczenia dla języka: {lang_code}")
             test_cases = self.test_data.get(lang_code, [])
+=======
+        lang_code = {
+            "english": "en",
+            "español": "es",
+            "francais": "fr"
+        }.get(target_lang)
+
+        if not lang_code or lang_code not in self.translators:
+            raise ValueError(f"Unsupported language: {target_lang}")
+
+        print(f"\n[TranslationAgent] Rozpoczynam ewaluację modelu dla języka: {target_lang}")
+        print(f"[TranslationAgent] Liczba par testowych: {len(self.test_data[lang_code])}")
+        
+        predictions = []
+        references = []
+        
+        for i, (source, reference) in enumerate(self.test_data[lang_code], 1):
+            prediction = self.translators[lang_code](source)[0]['translation_text']
+            predictions.append(prediction)
+            references.append(reference)
+>>>>>>> f084a25 (metrics)
             
             if not test_cases:
                 print(f"Brak danych testowych dla języka {lang_code}")
