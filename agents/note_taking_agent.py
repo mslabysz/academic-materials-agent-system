@@ -1,33 +1,26 @@
-from openai import OpenAI
+from agents.base_agent import BaseAgent
 from prompts.prompts import NOTE_TAKING_PROMPTS
-from agents.state import AgentState  # W każdym pliku agenta
 
-class NoteTakingAgent:
-    """
-    Agent do generowania notatek na podstawie transkrypcji.
-    """
-    def __init__(self, model_name="gpt-4o"):
-        self.model_name = model_name
-        self.client = OpenAI()
+class NoteTakingAgent(BaseAgent):
+    def __init__(self, model_name="gpt-4"):
+        super().__init__("NoteTakingAgent", model_name)
 
-    def __call__(self, state: AgentState) -> AgentState:
-        """
-        Metoda wywoływana przez LangGraph do przetworzenia stanu.
-        """
-        print(f"\n[NoteTakingAgent] Rozpoczynam generowanie notatek typu: {state['note_type']}")
+    def __call__(self, state: dict) -> dict:
+        """Główna logika generowania notatek"""
+        print(f"\n[NoteTakingAgent] Rozpoczynam generowanie notatek typu: {state.get('note_type')}")
         
         prompt = NOTE_TAKING_PROMPTS[state["note_type"]].format(
             transcript=state["transcript"]
         )
         
-        if state.get("additional_instructions"):
-            prompt += f"\n\nDodatkowe instrukcje: {state['additional_instructions']}"
+        if state.get("feedback"):  # Dodatkowe instrukcje
+            prompt += f"\n\nDodatkowe instrukcje: {state['feedback']}"
 
         print("[NoteTakingAgent] Wysyłam zapytanie do modelu...")
         response = self.client.chat.completions.create(
             model=self.model_name,
             messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "system", "content": "You are a helpful assistant specialized in note-taking."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7
@@ -39,5 +32,17 @@ class NoteTakingAgent:
         # Aktualizacja stanu
         state["notes"] = notes
         state["status"] = "notes_generated"
+        
+        # Informuj managera o zakończeniu
+        if "messages" not in state:
+            state["messages"] = []
+        state["messages"].append({
+            "from_agent": self.name,
+            "to_agent": "ManagerAgent",
+            "content": {
+                "status": "completed",
+                "notes_length": len(notes)
+            }
+        })
         
         return state

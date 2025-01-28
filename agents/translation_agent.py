@@ -3,9 +3,11 @@ from metrics.metrics import TranslationMetrics
 from datasets import load_dataset
 from data.translation_test_data import TEST_DATA
 from agents.state import AgentState  # W każdym pliku agenta
+from agents.base_agent import BaseAgent
 
-class TranslationAgent:
+class TranslationAgent(BaseAgent):
     def __init__(self):
+        super().__init__("TranslationAgent", "")  # Nie używamy OpenAI
         self.translators = {
             "en": pipeline("translation", model="Helsinki-NLP/opus-mt-pl-en"),
             "es": pipeline("translation", model="Helsinki-NLP/opus-mt-pl-es")
@@ -14,10 +16,8 @@ class TranslationAgent:
         self.latest_metrics = {}
         self.test_data = TEST_DATA
 
-    def __call__(self, state: AgentState) -> AgentState:
-        """
-        Metoda wywoływana przez LangGraph do przetworzenia stanu.
-        """
+    def __call__(self, state: dict) -> dict:
+        """Główna logika tłumaczenia"""
         if state["target_language"] == "polski":
             return state
 
@@ -52,6 +52,18 @@ class TranslationAgent:
         # Aktualizacja stanu
         state["notes"] = '\n'.join(translated_lines)
         state["status"] = "notes_translated"
+        
+        # Informuj managera o zakończeniu
+        if "messages" not in state:
+            state["messages"] = []
+        state["messages"].append({
+            "from_agent": self.name,
+            "to_agent": "ManagerAgent",
+            "content": {
+                "status": "completed",
+                "target_language": state["target_language"]
+            }
+        })
         
         return state
 
