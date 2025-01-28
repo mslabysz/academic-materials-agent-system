@@ -26,7 +26,7 @@ class ManagerAgent(BaseAgent):
         # Tworzenie workflow
         self.workflow = self.create_workflow()
 
-<<<<<<< HEAD
+
     def create_workflow(self) -> StateGraph:
         """Tworzy graf przepływu pracy"""
         # Definiujemy dozwolone klucze do aktualizacji
@@ -111,7 +111,7 @@ Wybierz JEDNO działanie (odpowiedz TYLKO jednym słowem):
         
         state["decision"] = decision
         return state
-=======
+
     def has_valid_transcript(self) -> bool:
         """
         Sprawdza czy jest dostępna prawidłowa transkrypcja.
@@ -123,7 +123,6 @@ Wybierz JEDNO działanie (odpowiedz TYLKO jednym słowem):
         Ustawia transkrypcję do użycia przez agenta.
         """
         self.transcript = transcript
->>>>>>> f084a25 (metrics)
 
     def get_transcript(self) -> str:
         """
