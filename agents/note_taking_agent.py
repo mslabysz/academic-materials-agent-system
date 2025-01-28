@@ -1,37 +1,42 @@
 from openai import OpenAI
 from prompts.prompts import NOTE_TAKING_PROMPTS
-
+from agents.state import AgentState  # W każdym pliku agenta
 class NoteTakingAgent:
     """
-    Agent do tworzenia wstępnych notatek.
+    Agent do generowania notatek na podstawie transkrypcji.
     """
     def __init__(self, model_name="gpt-4o"):
         self.model_name = model_name
         self.client = OpenAI()
-    
-    def run(self, transcript: str, note_type: str, additional_instructions: str = "") -> str:
+
+    def __call__(self, state: AgentState) -> AgentState:
         """
-        Generuje notatki na podstawie transkrypcji oraz zadanego typu notatek (summary, academic, outline, mindmap, q_and_a).
+        Metoda wywoływana przez LangGraph do przetworzenia stanu.
         """
-        print(f"\n[NoteTakingAgent] Rozpoczynam generowanie notatek typu: {note_type}")
-        if additional_instructions:
-            print(f"[NoteTakingAgent] Dodatkowe instrukcje: {additional_instructions}")
+        print(f"\n[NoteTakingAgent] Rozpoczynam generowanie notatek typu: {state['note_type']}")
         
-        prompt_template = NOTE_TAKING_PROMPTS.get(note_type, NOTE_TAKING_PROMPTS["summary"])
-        final_prompt = prompt_template.format(transcript=transcript)
-        if additional_instructions:
-            final_prompt += f"\nDodatkowe instrukcje: {additional_instructions}\n"
+        prompt = NOTE_TAKING_PROMPTS[state["note_type"]].format(
+            transcript=state["transcript"]
+        )
+        
+        if state.get("additional_instructions"):
+            prompt += f"\n\nDodatkowe instrukcje: {state['additional_instructions']}"
 
         print("[NoteTakingAgent] Wysyłam zapytanie do modelu...")
         response = self.client.chat.completions.create(
             model=self.model_name,
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": final_prompt}
+                {"role": "user", "content": prompt}
             ],
             temperature=0.7
         )
-        print("[NoteTakingAgent] Otrzymano odpowiedź od modelu")
+        
         notes = response.choices[0].message.content.strip()
         print(f"[NoteTakingAgent] Wygenerowano notatki o długości {len(notes)} znaków")
-        return notes
+        
+        # Aktualizacja stanu
+        state["notes"] = notes
+        state["status"] = "notes_generated"
+        
+        return state

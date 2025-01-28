@@ -1,6 +1,6 @@
 from openai import OpenAI
 from prompts.prompts import REVIEW_PROMPT
-
+from agents.state import AgentState  # W każdym pliku agenta
 class ReviewAgent:
     """
     Agent do poprawek i rozbudowy notatek na podstawie feedbacku użytkownika.
@@ -9,17 +9,21 @@ class ReviewAgent:
         self.model_name = model_name
         self.client = OpenAI()
 
-    def refine_notes(self, transcript: str, current_notes: str, feedback: str) -> tuple[str, str]:
+    def __call__(self, state: AgentState) -> AgentState:
         """
-        Na podstawie transkrypcji, obecnych notatek i feedbacku, zwraca krotkę (nowe_notatki, opis_zmian).
+        Metoda wywoływana przez LangGraph do przetworzenia stanu.
         """
+        if not state["feedback"]:
+            # Jeśli nie ma feedbacku, przechodzimy dalej
+            return state
+
         print(f"\n[ReviewAgent] Rozpoczynam poprawianie notatek")
-        print(f"[ReviewAgent] Otrzymany feedback: {feedback}")
+        print(f"[ReviewAgent] Otrzymany feedback: {state['feedback']}")
         
         final_prompt = REVIEW_PROMPT.format(
-            transcript=transcript,
-            current_notes=current_notes,
-            feedback=feedback
+            transcript=state["transcript"],
+            current_notes=state["notes"],
+            feedback=state["feedback"]
         ) + "\n\nPo wprowadzeniu zmian, opisz krótko (w 2-3 zdaniach) jakie zmiany zostały wprowadzone. Odpowiedź sformatuj tak:\n[NOTES]\n<tutaj notatki>\n[CHANGES]\n<tutaj opis zmian>"
 
         print("[ReviewAgent] Wysyłam zapytanie do modelu...")
@@ -35,15 +39,19 @@ class ReviewAgent:
         print("[ReviewAgent] Otrzymano odpowiedź od modelu")
         full_response = response.choices[0].message.content.strip()
         
-        # podzial na notatki i opis zmian
         try:
             notes_part = full_response.split("[NOTES]")[1].split("[CHANGES]")[0].strip()
             changes_description = full_response.split("[CHANGES]")[1].strip()
         except IndexError:
-            # Jeśli format odpowiedzi jest nieprawidłowy, zwracamy całość jako notatki
             notes_part = full_response
             changes_description = "Nie udało się wyodrębnić opisu zmian."
         
         print(f"[ReviewAgent] Wygenerowano poprawione notatki o długości {len(notes_part)} znaków")
         print(f"[ReviewAgent] Wygenerowano opis zmian o długości {len(changes_description)} znaków")
-        return notes_part, changes_description
+        
+        # Aktualizacja stanu
+        state["notes"] = notes_part
+        state["changes"] = changes_description
+        state["status"] = "notes_reviewed"
+        
+        return state

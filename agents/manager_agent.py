@@ -1,7 +1,9 @@
 from agents.note_taking_agent import NoteTakingAgent
 from agents.review_agent import ReviewAgent
 from agents.translation_agent import TranslationAgent
+from agents.workflow import create_notes_workflow, AgentState
 from storage.storage import VersionedNotesStorage
+from agents.state import AgentState  # W każdym pliku agenta
 
 class ManagerAgent:
     """
@@ -12,72 +14,96 @@ class ManagerAgent:
     - koordynację całego procesu.
     """
     def __init__(self, model_name="gpt-4o"):
+        # Inicjalizacja agentów
         self.note_taking_agent = NoteTakingAgent(model_name)
         self.review_agent = ReviewAgent(model_name)
         self.translation_agent = TranslationAgent()
+        
+        # Inicjalizacja workflow i storage
+        self.workflow = create_notes_workflow(model_name)
         self.storage = VersionedNotesStorage()
         self.transcript = None
-        self.has_transcript = False
 
     def set_transcript(self, transcript: str):
-        """Ustawia transkrypcję i aktualizuje flage."""
+        """Ustawia transkrypcję do przetworzenia"""
         self.transcript = transcript
-        self.has_transcript = True
-        print("[ManagerAgent] Zapisano nową transkrypcję")
-
-    def has_valid_transcript(self) -> bool:
-        """Sprawdza czy jest dostępna transkrypcja."""
-        return self.has_transcript
 
     def generate_notes(self, note_type: str, target_lang: str, additional_instructions: str = "") -> str:
+        """
+        Generuje notatki używając workflow LangGraph
+        """
         if not self.transcript:
             raise ValueError("Brak transkrypcji. Najpierw ustaw transkrypcję (set_transcript).")
-        
-        print(f"\n[ManagerAgent] Rozpoczynam proces generowania notatek typu: {note_type}")
-        notes = self.note_taking_agent.run(
-            transcript=self.transcript,
-            note_type=note_type,
-            additional_instructions=additional_instructions
-        )
-        if target_lang != "polski":
-            lang_code = {
-                "english": "en",
-                "español": "es"
-            }.get(target_lang)
 
-            if lang_code:
-                print(f"[ManagerAgent] Rozpoczynam tłumaczenie na język: {target_lang}")
-                notes = self.translation_agent.translate(notes, lang_code)
-                print("[ManagerAgent] Zakończono tłumaczenie")
+        # Przygotowanie stanu początkowego
+        initial_state: AgentState = {
+            "messages": [],
+            "transcript": self.transcript,
+            "notes": "",
+            "feedback": "",
+            "additional_instructions": additional_instructions,
+            "target_language": target_lang,
+            "note_type": note_type,
+            "status": "started",
+            "changes": "",
+            "error": None
+        }
 
-        self.storage.add_version(notes)
-        print("[ManagerAgent] Zapisano nową wersję notatek")
-        return notes
+        # Uruchomienie workflow
+        try:
+            final_state = self.workflow.invoke(initial_state)
+            
+            # Sprawdzenie czy nie wystąpił błąd
+            if final_state.get("error"):
+                raise ValueError(f"Błąd w workflow: {final_state['error']}")
+            
+            # Zapisanie wyniku
+            self.storage.add_version(final_state["notes"])
+            return final_state["notes"]
+            
+        except Exception as e:
+            print(f"[ManagerAgent] Wystąpił błąd: {str(e)}")
+            raise
 
     def refine_notes(self, feedback: str) -> tuple[str, str]:
-        if not self.transcript:
-            raise ValueError("Brak transkrypcji. Najpierw ustaw transkrypcję (set_transcript).")
+        """
+        Poprawia notatki na podstawie feedbacku
+        """
+        if not self.storage.has_versions():
+            raise ValueError("Brak notatek do poprawienia.")
 
-        print("\n[ManagerAgent] Rozpoczynam proces poprawiania notatek")
-        current_version = self.storage.get_latest_version()
-        if not current_version:
-            raise ValueError("Brak notatek do poprawy. Najpierw wygeneruj notatki.")
+        current_notes = self.storage.get_latest_version()
         
-        current_notes = current_version["notes_content"]
-        refined_notes, changes_description = self.review_agent.refine_notes(
-            transcript=self.transcript,
-            current_notes=current_notes,
-            feedback=feedback
-        )
-        self.storage.add_version(refined_notes, feedback_applied=feedback)
-        print("[ManagerAgent] Zapisano nową wersję poprawionych notatek")
-        return refined_notes, changes_description
+        # Przygotowanie stanu dla workflow
+        state: AgentState = {
+            "messages": [],
+            "transcript": self.transcript,
+            "notes": current_notes,
+            "feedback": feedback,
+            "target_language": "polski",  # Domyślnie nie tłumaczymy przy poprawkach
+            "note_type": "review",
+            "status": "review_started",
+            "changes": "",
+            "error": None
+        }
 
-    def get_latest_notes(self) -> str:
-        latest = self.storage.get_latest_version()
-        return latest.get("notes_content", "")
+        # Uruchomienie workflow tylko dla review
+        try:
+            final_state = self.review_agent(state)
+            
+            if final_state.get("error"):
+                raise ValueError(f"Błąd w review: {final_state['error']}")
+            
+            # Zapisanie wyniku
+            self.storage.add_version(final_state["notes"])
+            return final_state["notes"], final_state["changes"]
+            
+        except Exception as e:
+            print(f"[ManagerAgent] Wystąpił błąd podczas poprawiania: {str(e)}")
+            raise
 
     def get_notes_history(self) -> list:
+        """Zwraca historię wersji notatek"""
         return self.storage.get_all_versions()
 
     def get_translation_metrics(self, target_lang: str) -> dict:
