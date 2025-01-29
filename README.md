@@ -1,6 +1,6 @@
 # AI-Powered Note-Taking Assistant
 
-A sophisticated application that automatically generates, translates, and evaluates notes from YouTube videos and audio files using AI. Built with Python, leveraging OpenAI's GPT-4 and Whisper models, along with advanced translation capabilities.
+A sophisticated application that automatically generates, translates, and evaluates notes from YouTube videos and audio files using AI. Built with Python, leveraging OpenAI's GPT-4o and Whisper models, along with advanced translation capabilities.
 
 ![Application Interface](img1.png)
 
@@ -70,7 +70,7 @@ pip install -r requirements.txt
 
 4. Create a `.env` file in the project root and add your OpenAI API key:
 
-```
+
 
 ### Running the Application
 
