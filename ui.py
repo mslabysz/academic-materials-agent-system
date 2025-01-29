@@ -1,9 +1,10 @@
 import gradio as gr
+import matplotlib.pyplot as plt
 from agents.manager_agent import ManagerAgent
+from metrics.aspect_metrics import NoteAspectEvaluator
 from transcribe import get_youtube_transcript, get_audio_transcript
 from utils import get_file_paths
-import matplotlib.pyplot as plt
-from metrics.aspect_metrics import NoteAspectEvaluator
+import numpy as np
 
 def build_interface():
     manager = ManagerAgent()
@@ -47,15 +48,17 @@ def build_interface():
             gr.update(visible=True),  # changes_output
         ]
 
-    def refine_notes(feedback):
-        """
-        Funkcja do poprawiania notatek na podstawie feedbacku.
-        """
+    def on_refine_notes(feedback):
+        """Poprawia notatki na podstawie feedbacku"""
         try:
             notes, changes = manager.refine_notes(feedback)
-            return notes, changes
+            return [
+                notes,  # Notatki do wyświetlenia
+                gr.update(value=""),  # Czyścimy pole feedback
+                gr.update(value=changes, visible=True),  # Pokazujemy opis zmian
+            ]
         except Exception as e:
-            return f"Wystąpił błąd: {str(e)}", "Nie udało się wygenerować opisu zmian."
+            raise gr.Error(f"Wystąpił błąd: {str(e)}")
 
     # Interfejs Gradio
     with gr.Blocks() as demo:
@@ -82,7 +85,7 @@ def build_interface():
                         label="Wybierz styl notatek"
                     )
                     target_language = gr.Dropdown(
-                        choices=["polski", "english", "español"],
+                        choices=["polski", "english", "español", "francais"],
                         value="polski",
                         label="Język notatek"
                     )
@@ -122,27 +125,15 @@ def build_interface():
 
         with gr.Tab("4. Model Metrics"):
             with gr.Row():
-                metrics_lang = gr.Dropdown(
-                    choices=["english", "español"],
-                    value="english",
-                    label="Select language for metrics evaluation"
-                )
-                evaluate_btn = gr.Button("Evaluate Model")
+                evaluate_btn = gr.Button("Evaluate All Languages")
             
             with gr.Row():
-                with gr.Column(scale=1):
-                    metrics_scores = gr.Dataframe(
-                        headers=["Metric", "Score"],
-                        label="Translation Metrics",
-                        value=[
-                            ["Precision", 0.0],
-                            ["Recall", 0.0],
-                            ["F1 Score", 0.0]
-                        ]
-                    )
+                metrics_scores = gr.Dataframe(
+                    headers=["Language", "Precision", "Recall", "F1 Score"],
+                    label="Translation Metrics",
+                )
                 
-                with gr.Column(scale=1):
-                    metrics_plot = gr.Plot(label="Metrics Visualization")
+                metrics_plot = gr.Plot(label="Metrics Comparison")
 
         with gr.Tab("5. Note Evaluation"):
             with gr.Row():
@@ -202,9 +193,9 @@ def build_interface():
         )
 
         refine_button.click(
-            fn=refine_notes,
+            fn=on_refine_notes,
             inputs=[feedback_input],
-            outputs=[notes_output, changes_output]
+            outputs=[notes_output, feedback_input, changes_output]
         )
 
         def get_history():
@@ -225,40 +216,64 @@ def build_interface():
             outputs=[]
         )
 
-        def update_metrics(lang):
-            metrics = manager.get_translation_metrics(lang)
+        def update_metrics():
+            languages = ["english", "español", "francais"]
+            all_metrics = []
+            metrics_data = []
             
-            # Update wartosci w DataFrame
-            df_values = [
-                ["Precision", metrics['precision']],
-                ["Recall", metrics['recall']],
-                ["F1 Score", metrics['f1_score']]
-            ]
+            # Zbierz metryki dla każdego języka
+            for lang in languages:
+                metrics = manager.get_translation_metrics(lang)
+                all_metrics.append({
+                    'language': lang,
+                    'precision': metrics['precision'],
+                    'recall': metrics['recall'],
+                    'f1_score': metrics['f1_score']
+                })
+                metrics_data.append([
+                    lang,
+                    metrics['precision'],
+                    metrics['recall'],
+                    metrics['f1_score']
+                ])
             
-            # stworzenie wykresu
-            fig, ax = plt.subplots(figsize=(8, 5))
-            metrics_names = ["Precision", "Recall", "F1 Score"]
-            metrics_values = [metrics['precision'], metrics['recall'], metrics['f1_score']]
+            # Stwórz wykres porównawczy
+            fig, ax = plt.subplots(figsize=(10, 6))
+            x = np.arange(len(languages))
+            width = 0.25
             
-            bars = ax.bar(metrics_names, metrics_values, color=['#2ecc71', '#3498db', '#9b59b6'])
-            ax.set_title('Translation Model Metrics')
+            # Utworzenie słupków dla każdej metryki
+            ax.bar(x - width, [m['precision'] for m in all_metrics], width, label='Precision', color='#2ecc71')
+            ax.bar(x, [m['recall'] for m in all_metrics], width, label='Recall', color='#3498db')
+            ax.bar(x + width, [m['f1_score'] for m in all_metrics], width, label='F1 Score', color='#9b59b6')
+            
+            ax.set_ylabel('Scores')
+            ax.set_title('Translation Metrics Comparison')
+            ax.set_xticks(x)
+            ax.set_xticklabels(languages)
+            ax.legend()
             ax.set_ylim(0, 1)
             
-            # Dodanie wartości na słupkach
-            for bar in bars:
-                height = bar.get_height()
-                ax.text(bar.get_x() + bar.get_width()/2., height,
-                       f'{height:.2f}',
-                       ha='center', va='bottom')
+            # Dodaj wartości na słupkach
+            def autolabel(rects):
+                for rect in rects:
+                    height = rect.get_height()
+                    ax.annotate(f'{height:.2f}',
+                              xy=(rect.get_x() + rect.get_width() / 2, height),
+                              xytext=(0, 3),
+                              textcoords="offset points",
+                              ha='center', va='bottom', rotation=0)
             
-            plt.xticks(rotation=0)
+            for container in ax.containers:
+                autolabel(container)
+            
             plt.tight_layout()
             
-            return [df_values, fig]
+            return [metrics_data, fig]
 
         evaluate_btn.click(
             fn=update_metrics,
-            inputs=[metrics_lang],
+            inputs=[],
             outputs=[metrics_scores, metrics_plot]
         )
 

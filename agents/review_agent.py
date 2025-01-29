@@ -1,49 +1,67 @@
-from openai import OpenAI
+from agents.base_agent import BaseAgent
 from prompts.prompts import REVIEW_PROMPT
 
-class ReviewAgent:
+class ReviewAgent(BaseAgent):
     """
     Agent do poprawek i rozbudowy notatek na podstawie feedbacku użytkownika.
     """
     def __init__(self, model_name="gpt-4o"):
-        self.model_name = model_name
-        self.client = OpenAI()
+        super().__init__("ReviewAgent", model_name)
 
-    def refine_notes(self, transcript: str, current_notes: str, feedback: str) -> tuple[str, str]:
-        """
-        Na podstawie transkrypcji, obecnych notatek i feedbacku, zwraca krotkę (nowe_notatki, opis_zmian).
-        """
-        print(f"\n[ReviewAgent] Rozpoczynam poprawianie notatek")
-        print(f"[ReviewAgent] Otrzymany feedback: {feedback}")
+    def __call__(self, state: dict) -> dict:
+        """Główna logika poprawiania notatek"""
+        if not state.get("feedback"):
+            return state
+
+        print(f"[ReviewAgent] Otrzymany feedback: {state['feedback']}")
         
         final_prompt = REVIEW_PROMPT.format(
-            transcript=transcript,
-            current_notes=current_notes,
-            feedback=feedback
+            transcript=state["transcript"],
+            current_notes=state["notes"],
+            feedback=state["feedback"]
         ) + "\n\nPo wprowadzeniu zmian, opisz krótko (w 2-3 zdaniach) jakie zmiany zostały wprowadzone. Odpowiedź sformatuj tak:\n[NOTES]\n<tutaj notatki>\n[CHANGES]\n<tutaj opis zmian>"
 
         print("[ReviewAgent] Wysyłam zapytanie do modelu...")
         response = self.client.chat.completions.create(
             model=self.model_name,
             messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "system", "content": "You are a helpful assistant specialized in reviewing and improving notes."},
                 {"role": "user", "content": final_prompt}
             ],
             temperature=0.7
         )
         
-        print("[ReviewAgent] Otrzymano odpowiedź od modelu")
         full_response = response.choices[0].message.content.strip()
         
-        # podzial na notatki i opis zmian
         try:
             notes_part = full_response.split("[NOTES]")[1].split("[CHANGES]")[0].strip()
             changes_description = full_response.split("[CHANGES]")[1].strip()
+            
+            # Aktualizacja stanu
+            state["notes"] = notes_part
+            if "memory" not in state:
+                state["memory"] = {}
+            if "ReviewAgent" not in state["memory"]:
+                state["memory"]["ReviewAgent"] = {}
+            state["memory"]["ReviewAgent"]["changes"] = changes_description
+            state["status"] = "notes_reviewed"
+            
+            # Informuj managera o zmianach
+            if "messages" not in state:
+                state["messages"] = []
+            state["messages"].append({
+                "from_agent": self.name,
+                "to_agent": "ManagerAgent",
+                "content": {
+                    "status": "completed",
+                    "changes_made": changes_description
+                }
+            })
+            
         except IndexError:
-            # Jeśli format odpowiedzi jest nieprawidłowy, zwracamy całość jako notatki
-            notes_part = full_response
-            changes_description = "Nie udało się wyodrębnić opisu zmian."
+            print("[ReviewAgent] Nie udało się wyodrębnić opisu zmian")
+            state["notes"] = full_response
+            state["memory"] = {"ReviewAgent": {"changes": "Nie udało się wyodrębnić opisu zmian."}}
+            state["status"] = "notes_reviewed"
         
-        print(f"[ReviewAgent] Wygenerowano poprawione notatki o długości {len(notes_part)} znaków")
-        print(f"[ReviewAgent] Wygenerowano opis zmian o długości {len(changes_description)} znaków")
-        return notes_part, changes_description
+        return state

@@ -24,3 +24,7 @@ class VersionedNotesStorage:
     
     def get_all_versions(self) -> list:
         return self.versions
+
+    def has_versions(self) -> bool:
+        """Sprawdza czy są jakieś zapisane wersje"""
+        return len(self.versions) > 0

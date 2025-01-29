@@ -1,5 +1,5 @@
-from youtube_transcript_api import YouTubeTranscriptApi
 from openai import OpenAI
+from youtube_transcript_api import YouTubeTranscriptApi
 from utils import get_file_paths
 
 def get_youtube_transcript(url: str) -> tuple[str, str]:

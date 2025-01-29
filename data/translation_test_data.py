@@ -93,5 +93,45 @@ TEST_DATA = {
         ("Spotkanie zostało przełożone na jutro", "La reunión se ha pospuesto hasta mañana"),
         ("Raport kwartalny jest już gotowy", "El informe trimestral ya está listo"),
         ("Musimy zwiększyć sprzedaż w tym kwartale", "Necesitamos aumentar las ventas este trimestre")
+    ],
+    "fr": [
+        # Basic phrases
+        ("Dzień dobry", "Bonjour"),
+        ("Dobry wieczór", "Bonsoir"),
+        ("Do widzenia", "Au revoir"),
+        ("Dziękuję bardzo", "Merci beaucoup"),
+        ("Proszę bardzo", "Je vous en prie"),
+        ("Jak się masz?", "Comment allez-vous?"),
+        ("Przepraszam", "Je suis désolé"),
+        ("Nie rozumiem", "Je ne comprends pas"),
+        
+        # Introductions
+        ("Nazywam się Jan Kowalski", "Je m'appelle Jan Kowalski"),
+        ("Miło cię poznać", "Enchanté de vous rencontrer"),
+        ("Skąd jesteś?", "D'où venez-vous?"),
+        ("Jestem z Polski", "Je suis de Pologne"),
+        
+        # Questions
+        ("Która jest godzina?", "Quelle heure est-il?"),
+        ("Gdzie jest najbliższy przystanek?", "Où est l'arrêt le plus proche?"),
+        ("Ile to kosztuje?", "Combien ça coûte?"),
+        ("Czy możesz mi pomóc?", "Pouvez-vous m'aider?"),
+        
+        # Complex sentences
+        ("Jeśli będzie padać, zostanę w domu", "S'il pleut, je resterai à la maison"),
+        ("Kiedy skończę pracę, pójdę na spacer", "Quand j'aurai fini le travail, j'irai me promener"),
+        ("Chciałbym zarezerwować stolik na dziś wieczór", "Je voudrais réserver une table pour ce soir"),
+        
+        # Academic/Scientific
+        ("Ten artykuł przedstawia interesujące wyniki badań", "Cet article présente des résultats de recherche intéressants"),
+        ("Analiza danych wykazała znaczące różnice", "L'analyse des données a montré des différences significatives"),
+        
+        # Technical/IT
+        ("Należy zaktualizować bazę danych", "La base de données doit être mise à jour"),
+        ("Program wymaga więcej pamięci RAM", "Le programme nécessite plus de mémoire RAM"),
+        
+        # Business
+        ("Proszę o przesłanie oferty", "Veuillez envoyer l'offre"),
+        ("Spotkanie zostało przełożone na jutro", "La réunion a été reportée à demain")
     ]
 } 

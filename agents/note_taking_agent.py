@@ -1,37 +1,48 @@
-from openai import OpenAI
+from agents.base_agent import BaseAgent
 from prompts.prompts import NOTE_TAKING_PROMPTS
 
-class NoteTakingAgent:
-    """
-    Agent do tworzenia wstępnych notatek.
-    """
+class NoteTakingAgent(BaseAgent):
     def __init__(self, model_name="gpt-4o"):
-        self.model_name = model_name
-        self.client = OpenAI()
-    
-    def run(self, transcript: str, note_type: str, additional_instructions: str = "") -> str:
-        """
-        Generuje notatki na podstawie transkrypcji oraz zadanego typu notatek (summary, academic, outline, mindmap, q_and_a).
-        """
-        print(f"\n[NoteTakingAgent] Rozpoczynam generowanie notatek typu: {note_type}")
-        if additional_instructions:
-            print(f"[NoteTakingAgent] Dodatkowe instrukcje: {additional_instructions}")
+        super().__init__("NoteTakingAgent", model_name)
+
+    def __call__(self, state: dict) -> dict:
+        """Główna logika generowania notatek"""
+        print(f"\n[NoteTakingAgent] Rozpoczynam generowanie notatek typu: {state.get('note_type')}")
         
-        prompt_template = NOTE_TAKING_PROMPTS.get(note_type, NOTE_TAKING_PROMPTS["summary"])
-        final_prompt = prompt_template.format(transcript=transcript)
-        if additional_instructions:
-            final_prompt += f"\nDodatkowe instrukcje: {additional_instructions}\n"
+        prompt = NOTE_TAKING_PROMPTS[state["note_type"]].format(
+            transcript=state["transcript"]
+        )
+        
+        if state.get("feedback"):
+            prompt += f"\n\nDodatkowe instrukcje: {state['feedback']}"
 
         print("[NoteTakingAgent] Wysyłam zapytanie do modelu...")
         response = self.client.chat.completions.create(
             model=self.model_name,
             messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": final_prompt}
+                {"role": "system", "content": "You are a helpful assistant specialized in note-taking."},
+                {"role": "user", "content": prompt}
             ],
             temperature=0.7
         )
-        print("[NoteTakingAgent] Otrzymano odpowiedź od modelu")
+        
         notes = response.choices[0].message.content.strip()
         print(f"[NoteTakingAgent] Wygenerowano notatki o długości {len(notes)} znaków")
-        return notes
+        
+        # Aktualizacja stanu
+        state["notes"] = notes
+        state["status"] = "notes_generated"
+        
+        # Informuj managera o zakończeniu
+        if "messages" not in state:
+            state["messages"] = []
+        state["messages"].append({
+            "from_agent": self.name,
+            "to_agent": "ManagerAgent",
+            "content": {
+                "status": "completed",
+                "notes_length": len(notes)
+            }
+        })
+        
+        return state

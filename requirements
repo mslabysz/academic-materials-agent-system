@@ -9,3 +9,6 @@ ragas
 langchain_openai
 matplotlib
 scikit-learn
+langgraph
+langchain
+langchain_core
