@@ -21,7 +21,7 @@ Multiple note-taking styles available:
 - Flashcards
 
 ### 3. Translation Support
-- Multi-language support (Polish, English, Spanish)
+- Multi-language support (Polish, English, Spanish, French)
 - Neural machine translation using Helsinki-NLP models
 - Translation quality metrics and evaluation
 
