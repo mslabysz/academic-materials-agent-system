@@ -13,7 +13,7 @@ class NoteTakingAgent(BaseAgent):
             transcript=state["transcript"]
         )
         
-        if state.get("feedback"):  # Dodatkowe instrukcje
+        if state.get("feedback"):
             prompt += f"\n\nDodatkowe instrukcje: {state['feedback']}"
 
         print("[NoteTakingAgent] Wysyłam zapytanie do modelu...")

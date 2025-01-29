@@ -18,12 +18,10 @@ class ManagerAgent(BaseAgent):
         self.transcript = None
         self.storage = VersionedNotesStorage()
         
-        # Inicjalizacja agentów
         self.note_taking_agent = NoteTakingAgent(model_name)
         self.review_agent = ReviewAgent(model_name)
         self.translation_agent = TranslationAgent()
         
-        # Tworzenie workflow
         self.workflow = self.create_workflow()
 
 
@@ -38,17 +36,16 @@ class ManagerAgent(BaseAgent):
             "memory": "append"
         }
         
-        # Używamy dict zamiast AgentState
         workflow = StateGraph(dict, config)
         
-        # Dodajemy węzły
+        # Dodanie węzłów
         workflow.add_node("manager", self.process)
         workflow.add_node("note_taking", self.note_taking_agent)
         workflow.add_node("review", self.review_agent)
         workflow.add_node("translation", self.translation_agent)
         workflow.add_node("end", lambda x: x)
         
-        # Dodajemy krawędzie warunkowe
+        # Dodanie krawędzi warunkowych
         workflow.add_conditional_edges(
             "manager",
             lambda x: x["decision"],
@@ -60,7 +57,7 @@ class ManagerAgent(BaseAgent):
             }
         )
         
-        # Wszystkie agenty wracają do managera po wykonaniu zadania
+        # Powrót do managera po wykonaniu zadania
         workflow.add_edge("note_taking", "manager")
         workflow.add_edge("review", "manager")
         workflow.add_edge("translation", "manager")
@@ -143,7 +140,7 @@ Wybierz JEDNO działanie (odpowiedz TYLKO jednym słowem):
             "status": "started"
         }
 
-        # Uruchamiamy workflow używając .invoke()
+        # Uruchamiamy workflow
         final_state = self.workflow.invoke(initial_state)
         
         # Zapisujemy wygenerowane notatki
@@ -173,7 +170,7 @@ Wybierz JEDNO działanie (odpowiedz TYLKO jednym słowem):
             "decision": ""
         }
 
-        # Uruchamiamy workflow używając .invoke()
+        # Uruchamiamy workflow z poprawkami
         final_state = self.workflow.invoke(initial_state)
         
         # Zapisujemy poprawione notatki

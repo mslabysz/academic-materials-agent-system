@@ -4,7 +4,6 @@ from ragas.llms import LangchainLLMWrapper
 from langchain_openai import ChatOpenAI
 from ragas import evaluate
 from datasets import Dataset
-import pandas as pd
 
 class NoteAspectEvaluator:
     def __init__(self):
